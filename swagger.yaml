@@ -1,0 +1,189 @@
+openapi: 3.0.0
+info:
+  title: Weather API
+  version: "1.0.0"
+  description: API para gestión de usuarios y consultas climáticas.
+
+servers:
+  - url: http://localhost/api
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    WeatherSearch:
+      type: object
+      properties:
+        id:
+          type: integer
+        city:
+          type: string
+        temperature:
+          type: number
+        condition:
+          type: string
+        wind_kph:
+          type: number
+        humidity:
+          type: integer
+        local_time:
+          type: string
+        is_favorite:
+          type: boolean
+        created_at:
+          type: string
+
+security:
+  - bearerAuth: []
+
+paths:
+  /register:
+    post:
+      summary: Registrar nuevo usuario
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Usuario registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    type: object
+
+  /login:
+    post:
+      summary: Iniciar sesión
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Sesión iniciada
+
+  /auth/logout:
+    post:
+      summary: Cerrar sesión del usuario
+      tags:
+        - Autenticación
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Sesión cerrada exitosamente
+
+  /auth/weather:
+    get:
+      summary: Consultar clima por ciudad
+      tags:
+        - Clima
+      parameters:
+        - in: query
+          name: city
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Datos climáticos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherSearch'
+
+  /auth/history:
+    get:
+      summary: Consultar historial de búsquedas
+      tags:
+        - Historial
+      responses:
+        200:
+          description: Historial del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeatherSearch'
+
+  /auth/favorites:
+    get:
+      summary: Listar ciudades favoritas
+      tags:
+        - Favoritos
+      responses:
+        200:
+          description: Lista de favoritas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WeatherSearch'
+
+  /auth/favorite/{search_id}:
+    post:
+      summary: Marcar búsqueda como favorita
+      tags:
+        - Favoritos
+      parameters:
+        - name: search_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Marcado como favorito
+
+  /auth/unfavorite/{search_id}:
+    post:
+      summary: Desmarcar búsqueda como favorita
+      tags:
+        - Favoritos
+      parameters:
+        - name: search_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Desmarcado como favorito
